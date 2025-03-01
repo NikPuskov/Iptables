@@ -134,7 +134,7 @@
 
 На centralServer добавляем статический маршрут к сети 192.168.56.0/24 через inet2Router: `nano /etc/netplan/50-vagrant.yaml`
 
-image
+![Image alt](https://github.com/NikPuskov/Iptables/blob/main/iptables2.jpg)
 
 `netplan try`
 
