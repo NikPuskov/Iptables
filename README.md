@@ -164,4 +164,4 @@
 
 Для проверки заходим на centralServer и выполняем traceroute: `traceroute -n 8.8.8.8`
 
-image
+![Image alt](https://github.com/NikPuskov/Iptables/blob/main/iptables5.jpg)
