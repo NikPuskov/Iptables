@@ -36,7 +36,37 @@
 
 Настраиваем правила для реализации port knocking:
 
-image
+`iptables -N TRAFFIC`
+
+`iptables -N SSH-INPUT`
+
+`iptables -N SSH-INPUTTWO`
+
+`iptables -A TRAFFIC -p icmp --icmp-type any -j ACCEPT`
+
+`iptables -A TRAFFIC -m state --state ESTABLISHED,RELATED -j ACCEPT`
+
+`iptables -A TRAFFIC -m state --state NEW -m tcp -p tcp --dport 22 -m recent --rcheck --seconds 30 --name SSH2 -j ACCEPT`
+
+`iptables -A TRAFFIC -m state --state NEW -m tcp -p tcp -m recent --name SSH2 --remove -j DROP`
+
+`iptables -A TRAFFIC -m state --state NEW -m tcp -p tcp --dport 9991 -m recent --rcheck --name SSH1 -j SSH-INPUTTWO`
+
+`iptables -A TRAFFIC -m state --state NEW -m tcp -p tcp -m recent --name SSH1 --remove -j DROP`
+
+`iptables -A TRAFFIC -m state --state NEW -m tcp -p tcp --dport 7777 -m recent --rcheck --name SSH0 -j SSH-INPUT`
+
+`iptables -A TRAFFIC -m state --state NEW -m tcp -p tcp -m recent --name SSH0 --remove -j DROP`
+
+`iptables -A TRAFFIC -m state --state NEW -m tcp -p tcp --dport 8881 -m recent --name SSH0 --set -j DROP`
+
+`iptables -A SSH-INPUT -m recent --name SSH1 --set -j DROP`
+
+`iptables -A SSH-INPUTTWO -m recent --name SSH2 --set -j DROP`
+
+`iptables -A INPUT -i eth1 -j TRAFFIC`
+
+`iptables -A TRAFFIC -i eth1 -j DROP`
 
 Сохраняем правила: `netfilter-persistent save`
 
@@ -54,7 +84,7 @@ image
 
 Подключение по ssh работает. Значит port knocking настроен верно. Чтобы не стучать каждый раз вручную (не вводить несколько команд), можно сделать скрипт:
 
-image
+![Image alt](https://github.com/NikPuskov/Iptables/blob/main/iptables1.jpg)
 
 и запускать перед подключением по ssh `knock HOST PORT1 PORT2 PORTx`. Например: `knock 192.168.255.1 8881 7777 9991`
 
