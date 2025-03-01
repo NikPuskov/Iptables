@@ -150,13 +150,13 @@
 
 `nano /etc/netplan/00-installer-config.yaml`
 
-image
+![Image alt](https://github.com/NikPuskov/Iptables/blob/main/iptables3.jpg)
 
 Добавляем статический маршрут по умолчанию через centralRouter: 
 
 `nano /etc/netplan/50-vagrant.yaml`
 
-image
+![Image alt](https://github.com/NikPuskov/Iptables/blob/main/iptables4.jpg)
 
 `netplan try`
 
