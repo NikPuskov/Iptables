@@ -1,0 +1,85 @@
+---
+
+- hosts: all
+  become: yes
+  name: iptables 
+
+  tasks:
+    - name: stop firewall ufw, if started
+      ansible.builtin.service:
+        name: ufw
+        state: stopped
+        enabled: no
+
+    - name: update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      tags:
+        - update-apt-cache
+
+    - name: install additional packages
+      ansible.builtin.apt:
+        name: "{{item}}"
+        state: present
+      loop:
+        - traceroute
+        - iptables-persistent
+        - netfilter-persistent
+        - nmap
+        - tcpdump
+
+    - name: install nginx on centralServer
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Start service httpd, if not started
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true 
+
+    - name: set up forward packages across routers
+      ansible.posix.sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: '1'
+        state: present
+      when: "'routers' in group_names"
+
+    - name: copy iptables config
+      ansible.builtin.template:
+        src: "templates/iptables_cofig_{{ansible_hostname}}"
+        dest: "/etc/iptables/rules.v4"
+        owner: root
+        group: root
+        mode: "0640"
+      when: ansible_hostname == "inetRouter" or ansible_hostname == "inet2Router"
+
+    - name: restore iptables configuration
+      ansible.builtin.command: netfilter-persistent reload
+      when: (ansible_hostname == "inetRouter" or ansible_hostname == "inet2Router")
+
+    - name: disable default route
+      ansible.builtin.template:
+        src: "templates/00-installer-config.yaml"
+        dest: "/etc/netplan/00-installer-config.yaml"
+        owner: root
+        group: root
+        mode: "0640"
+      when: ansible_hostname == "centralRouter" or ansible_hostname == "centralServer"
+
+    - name: add static routers to hosts
+      ansible.builtin.template:
+        src: "50-vagrant.yaml_{{ansible_hostname}}"
+        dest: /etc/netplan/50-vagrant.yaml
+        owner: root
+        group: root
+        mode: 0644
+      when: ansible_hostname == "inetRouter" or ansible_hostname == "centralRouter" or ansible_hostname == "centralServer"
+
+    - name: restart hosts
+      ansible.builtin.reboot:
+      when: ansible_hostname == "inetRouter" or ansible_hostname == "centralRouter" or ansible_hostname == "centralServer"
+
+
+    
